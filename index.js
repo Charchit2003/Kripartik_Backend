@@ -20,13 +20,14 @@ const authRouter = require('./routes/Auth');
 const cartRouter = require('./routes/Cart');
 const ordersRouter = require('./routes/Order');
 const { User } = require('./model/User');
+const { Order } = require('./model/Order');
 const { isAuth, sanitizeUser, cookieExtractor } = require('./services/common');
 const path = require('path');
 
 // JWT options
 
 const endpointSecret = process.env.ENDPOINT_SECRET;
-server.post('/webhook', express.raw({type: 'application/json'}), (request, response) => {
+server.post('/webhook', express.raw({type: 'application/json'}), async (request, response) => {
   const sig = request.headers['stripe-signature'];
   let event;
   try {
@@ -39,8 +40,9 @@ server.post('/webhook', express.raw({type: 'application/json'}), (request, respo
   switch (event.type) {
     case 'payment_intent.succeeded':
       const paymentIntentSucceeded = event.data.object;
-      console.log({paymentIntentSucceeded})
-      // Then define and call a function to handle the event payment_intent.succeeded
+      const order = await Order.findById(paymentIntentSucceeded.metadata.orderId);
+      order.paymentStatus = 'received';
+      await order.save()
       break;
       // ... handle other event types
       default:
@@ -82,6 +84,8 @@ server.use('/users', isAuth(), usersRouter.router);
 server.use('/auth', authRouter.router);
 server.use('/cart', isAuth(), cartRouter.router);
 server.use('/orders', isAuth(), ordersRouter.router);
+// this line we add to make react router work in case of other routes doesnt match
+server.get('*', (req, res) => res.sendFile(path.resolve('build', 'index.html')));
 
 // Passport Strategies
 passport.use(
@@ -154,14 +158,17 @@ passport.deserializeUser(function (user, cb) {
 // This is your test secret API key.
 const stripe = require("stripe")(process.env.STRIPE_SERVER_KEY);
 server.post("/create-payment-intent", async (req, res) => {
-  const { totalAmount } = req.body;
+  const { totalAmount, orderId } = req.body;
   // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: totalAmount*100, // for decimal compensation
+    amount: totalAmount, // for decimal compensation
     currency: "inr",
     automatic_payment_methods: {
       enabled: true,
     },
+    metadata:{
+      orderId
+    }
   });
   res.send({
     clientSecret: paymentIntent.client_secret,
