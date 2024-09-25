@@ -1,7 +1,7 @@
 const { User } = require('../model/User');
 const crypto = require('crypto');
 const { sanitizeUser } = require('../services/common');
-const SECRET_KEY = 'SECRET_KEY';
+const SECRET_KEY = process.env.JWT_SECRET_KEY;
 const jwt = require('jsonwebtoken');
 
 exports.createUser = async (req, res) => {
@@ -24,29 +24,31 @@ exports.createUser = async (req, res) => {
           } else {
             const token = jwt.sign(sanitizeUser(doc), SECRET_KEY);
             res
-              .cookie('jwt', token, {
+            .cookie('jwt', token, {
                 expires: new Date(Date.now() + 3600000),
                 httpOnly: true,
               })
               .status(201)
               .json({id:doc.id, role:doc.role});
-          }
-        });
-      }
-    );
-  } catch (err) {
-    res.status(400).json(err);
-  }
-};
-
-exports.loginUser = async (req, res) => {
+            }
+          });
+        }
+      );
+    } catch (err) {
+      res.status(400).json(err);
+    }
+  };
+  
+  exports.loginUser = async (req, res) => {
+    const user = req.user
+    const token = jwt.sign({id:user.id, role:user.role}, SECRET_KEY);
   res
-    .cookie('jwt', req.user, {
+    .cookie('jwt', token, {
       expires: new Date(Date.now() + 3600000),
       httpOnly: true,
     })
     .status(201)
-    .json({id:req.user.id, role:req.user.role});
+    .json({id:user.id, role:user.role});
 };
 
 exports.checkAuth = async (req, res) => {
