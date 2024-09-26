@@ -79,8 +79,8 @@ const productSchema = new Schema({
 //     ],
 //     "thumbnail": "https://cdn.dummyjson.com/products/images/beauty/Essence%20Mascara%20Lash%20Princess/thumbnail.png"
 //   }
-const virtual  = productSchema.virtual('id');
-virtual.get(function(){
+const virtualId  = productSchema.virtual('id');
+virtualId.get(function(){
     return this._id;
 })
 productSchema.set('toJSON',{

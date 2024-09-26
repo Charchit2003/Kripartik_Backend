@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('dotenv').config();
 const express = require('express');
 const server = express();
 const mongoose = require('mongoose');
@@ -28,30 +28,40 @@ const { env } = require('process');
 // JWT options
 
 const endpointSecret = process.env.ENDPOINT_SECRET;
-server.post('/webhook', express.raw({type: 'application/json'}), async (request, response) => {
-  const sig = request.headers['stripe-signature'];
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
-  } catch (err) {
-    response.status(400).send(`Webhook Error: ${err.message}`);
-    return;
-  }
-  // Handle the event
-  switch (event.type) {
-    case 'payment_intent.succeeded':
-      const paymentIntentSucceeded = event.data.object;
-      const order = await Order.findById(paymentIntentSucceeded.metadata.orderId);
-      order.paymentStatus = 'received';
-      await order.save()
-      break;
+server.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  async (request, response) => {
+    const sig = request.headers['stripe-signature'];
+
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+    } catch (err) {
+      response.status(400).send(`Webhook Error: ${err.message}`);
+      return;
+    }
+
+    // Handle the event
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        const paymentIntentSucceeded = event.data.object;
+        const order = await Order.findById(
+          paymentIntentSucceeded.metadata.orderId
+        );
+        order.paymentStatus = 'received';
+        await order.save();
+        break;
       // ... handle other event types
       default:
         console.log(`Unhandled event type ${event.type}`);
-      }
-      // Return a 200 response to acknowledge receipt of the event
-      response.send();
-    });
+    }
+
+    // Return a 200 response to acknowledge receipt of the event
+    response.send();
+  }
+);
     
     const SECRET_KEY = process.env.JWT_SECRET_KEY;
     const opts = {};
@@ -158,12 +168,12 @@ passport.deserializeUser(function (user, cb) {
 // Payments
 // This is your test secret API key.
 const stripe = require("stripe")(process.env.STRIPE_SERVER_KEY);
-server.post("/create-payment-intent", async (req, res) => {
+server.post('/create-payment-intent', async (req, res) => {
   const { totalAmount, orderId } = req.body;
   // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: totalAmount*100, // for decimal compensation
-    currency: "inr",
+    amount: totalAmount * 100, // for decimal compensation
+    currency: 'inr',
     automatic_payment_methods: {
       enabled: true,
     },
