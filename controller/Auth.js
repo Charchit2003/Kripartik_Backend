@@ -5,6 +5,7 @@ const SECRET_KEY = process.env.JWT_SECRET_KEY;
 const jwt = require('jsonwebtoken');
 
 exports.createUser = async (req, res) => {
+  
   try {
     const salt = crypto.randomBytes(16);
     crypto.pbkdf2(
