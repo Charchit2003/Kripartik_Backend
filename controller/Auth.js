@@ -48,7 +48,7 @@ exports.createUser = async (req, res) => {
       httpOnly: true,
     })
     .status(201)
-    .json({ id: doc.id, role: doc.role });
+    .json({ id: user.id, role: user.role });
 };
 
 exports.checkAuth = async (req, res) => {
@@ -68,7 +68,7 @@ exports.resetPasswordRequest = async (req, res) => {
     await user.save();
     // Also set token in email
     const resetPageLink =
-      'http://localhost:3000/reset-password?token=' + token + '&email=' + email;
+      'https://kripartik.vercel.app/?token=' + token + '&email=' + email;
     const subject = 'reset password for e-commerce';
     const html = `<p>Click <a href='${resetPageLink}'>here</a> to Reset Password</p>`;
     // lets send email and a token in the mail body so we can verify that user has clicked right link

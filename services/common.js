@@ -6,7 +6,7 @@ let transporter = nodemailer.createTransport({
   port: 587,
   secure: false, // true for 465, false for other ports
   auth: {
-    user: 'ch21b024@smail.iitm.ac.in', // gmail
+    user: 'charchitpaharia@gmail.com', // gmail
     pass: process.env.MAIL_PASSWORD, // pass
   },
 });
@@ -34,7 +34,7 @@ exports.cookieExtractor = function (req) {
 
 exports.sendMail = async function ({to, subject, text, html}){
   let info = await transporter.sendMail({
-      from: '"Kripartik" <ch21b024@smail.iitm.ac.in>', // sender address
+      from: '"Kripartik" <charchitpaharia@gmail.com>', // sender address
       to,
       subject,
       text,
