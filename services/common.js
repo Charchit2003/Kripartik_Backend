@@ -1,4 +1,15 @@
 const passport = require('passport');
+const nodemailer = require('nodemailer');
+
+let transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: 'ch21b024@smail.iitm.ac.in', // gmail
+    pass: process.env.MAIL_PASSWORD, // pass
+  },
+});
 
 exports.isAuth = (req, res, done) => {
   return passport.authenticate('jwt');
@@ -20,3 +31,14 @@ exports.cookieExtractor = function (req) {
   // token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZjFhYWIzMzM3NTg5MmI3ZWY0NWExYiIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzI3MTEzOTA3fQ.PGOETWlMEZf9rz1eNgrbbt6W0mw3-Xc4KteM6_Zgrgc";
   return token;
 };
+
+exports.sendMail = async function ({to, subject, text, html}){
+  let info = await transporter.sendMail({
+      from: '"Kripartik" <ch21b024@smail.iitm.ac.in>', // sender address
+      to,
+      subject,
+      text,
+      html
+    });
+  return info;  
+}
